@@ -5,25 +5,41 @@ const filmesDestaque = [
     {
         titulo: "Cosmic Show",
         genero: "Acao e Aventura",
-        horario: "Hoje - 19:20",
+        horarios: [
+            { dia: "Seg", hora: "14:20" },
+            { dia: "Qua", hora: "17:10" },
+            { dia: "Sex", hora: "20:05" }
+        ],
         imagem: "https://i.imgur.com/8w1NikM.jpg"
     },
     {
         titulo: "Noite no Vazio",
         genero: "Terror Sci-Fi",
-        horario: "Hoje - 21:45",
+        horarios: [
+            { dia: "Ter", hora: "15:40" },
+            { dia: "Qui", hora: "19:00" },
+            { dia: "Sab", hora: "22:15" }
+        ],
         imagem: "https://i.imgur.com/cH3kBRq.jpg"
     },
     {
         titulo: "Coracao de Jazz",
         genero: "Drama Musical",
-        horario: "Amanha - 18:10",
+        horarios: [
+            { dia: "Seg", hora: "13:30" },
+            { dia: "Qui", hora: "16:50" },
+            { dia: "Dom", hora: "20:30" }
+        ],
         imagem: "https://i.imgur.com/qIYkVKY.jpg"
     },
     {
         titulo: "A Jornada",
         genero: "Fantasia",
-        horario: "Amanha - 20:30",
+        horarios: [
+            { dia: "Ter", hora: "14:00" },
+            { dia: "Sex", hora: "18:20" },
+            { dia: "Sab", hora: "21:00" }
+        ],
         imagem: "https://i.imgur.com/ufrzeZ1.jpg"
     }
 ];
@@ -72,7 +88,11 @@ function Home(){
                             <div className="conteudo-card">
                                 <h3>{filme.titulo}</h3>
                                 <p>{filme.genero}</p>
-                                <span>{filme.horario}</span>
+                                <div className="horarios-card">
+                                    {filme.horarios.map((sessao) => (
+                                        <span key={`${sessao.dia}-${sessao.hora}`}>{sessao.dia} - {sessao.hora}</span>
+                                    ))}
+                                </div>
                                 <Link to="/produtos" className="btn-card">Reservar ingresso</Link>
                             </div>
                         </article>

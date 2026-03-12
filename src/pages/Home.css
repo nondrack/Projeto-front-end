@@ -157,9 +157,16 @@
   color: #475569;
 }
 
-.conteudo-card span{
+.horarios-card{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.horarios-card span{
   display: inline-block;
   font-weight: 700;
+  font-size: 0.8rem;
   color: #9a3412;
   background: #fff7ed;
   padding: 0.25rem 0.5rem;
