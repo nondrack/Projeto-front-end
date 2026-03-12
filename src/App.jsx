@@ -3,7 +3,9 @@ import "./App.css";
 import Header from "./componentes/Headers";
 import Footer from "./componentes/Footer";
 import Contato from "./pages/Contato";
+import Cadastro from "./pages/Cadastro";
 import Home from "./pages/Home";
+import Login from "./pages/Login";
 import Produtos from "./pages/Produtos";
 import Sobre from "./pages/Sobre";
 
@@ -17,6 +19,8 @@ function App(){
           <Route path="/produtos" element={<Produtos/>}/>
           <Route path="/contato" element={<Contato/>} />
           <Route path="/sobre" element={<Sobre/>} />
+          <Route path="/login" element={<Login/>} />
+          <Route path="/cadastro" element={<Cadastro/>} />
         </Routes>
       </div>
       <Footer/>

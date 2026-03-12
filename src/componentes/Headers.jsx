@@ -13,8 +13,10 @@ function Header(){
         {/* ÁREA DO MENU DE NAVEGAÇÃO */}
         <nav className="menu_header" aria-label="Menu principal">
             <NavLink to="/" end>Home</NavLink>
+            <NavLink to="/produtos">Produtos</NavLink>
             <NavLink to="/contato">Contato</NavLink>
             <NavLink to="/sobre">Sobre</NavLink>
+            <NavLink to="/login" className="btn-logar">Logar</NavLink>
         </nav>
         </header>
     );
