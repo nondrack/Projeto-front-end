@@ -1,0 +1,103 @@
+.cinema-page{
+  max-width: 1120px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.intro-cinema h1{ margin-bottom: 0.4rem; }
+
+.filtro{ display: flex; align-items: center; gap: 0.5rem; font-weight: 700; }
+
+.filtro select{ padding: 0.6rem 0.8rem; border-radius: 6px; border: 1px solid #ccc; }
+
+.lista-filmes{ display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 1rem; }
+
+.filme-card{ padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 10px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform .2s, border-color .2s; background:#fff; }
+.filme-card:hover{ transform: translateY(-2px); border-color: #f97316; }
+.filme-card.ativo{ border-color: #10b981; box-shadow: 0 0 0 2px rgba(16,185,129,.2); }
+.filme-card img{ width:100%; border-radius: 8px; }
+.filme-card h2{ margin: 0.7rem 0 0.25rem; font-size: 1rem; }
+.filme-card span{ font-size: 0.85rem; color: #555; }
+
+.detalhes-filme{ padding: 1rem; border-radius: 10px; border: 1px solid #e5e7eb; background: #fff; }
+
+.sessoes{ margin-top: 0.9rem; }
+.sessoes-opcoes{ display:flex; gap:0.5rem; flex-wrap: wrap; margin-top:0.5rem; }
+.sessoes-opcoes button{ border:1px solid #cbd5e1; background:#f8fafc; border-radius: 999px; padding:0.35rem 0.75rem; cursor:pointer; }
+.sessoes-opcoes button.sessao-ativa{ background:#f54927; color:#fff; border-color:#f54927; }
+
+.assentos-area{ padding:1rem; border-radius: 10px; border: 1px solid #e5e7eb; background: #fff; }
+.assentos-grid{ display: grid; grid-template-columns: repeat(10,1fr); gap: 0.35rem; }
+.assentos-grid button{ padding: 0.55rem; border: 1px solid #9ca3af; border-radius: 4px; background:#f3f4f6; cursor:pointer; }
+.assentos-grid button.ocupado{ background:#f87171; border-color:#dc2626; color:#fff; cursor:not-allowed; }
+.assentos-grid button.selecionado{ background:#34d399; border-color:#059669; color:#fff; }
+
+.reserva-form{ padding:1rem; border-radius: 10px; border: 1px solid #e5e7eb; background: #fff; }
+.reserva-form form{ display:grid; gap: 0.8rem; }
+.reserva-form label{ font-weight:700; }
+.reserva-form input{ padding:0.7rem; border-radius:8px; border:1px solid #cbd5e1; }
+
+.linha-ingressos{ display:grid; grid-template-columns: 1fr 1fr; gap:0.8rem; }
+.linha-ingressos div{ display:grid; gap:0.4rem; }
+
+.tipo-ingresso-card{
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.7rem;
+  background: #f8fafc;
+}
+
+.tipo-ingresso-card p{
+  margin: 0;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.controle-qtd{
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.controle-qtd button{
+  width: 32px;
+  height: 32px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.controle-qtd button:hover{
+  border-color: #f54927;
+  color: #f54927;
+}
+
+.controle-qtd span{
+  min-width: 26px;
+  text-align: center;
+  font-weight: 700;
+}
+
+.resumo-ingressos{
+  margin: 0;
+  font-size: 0.92rem;
+  color: #475569;
+}
+
+.reserva-form button{ padding: 0.75rem; background:#f54927; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:700; }
+.reserva-form button:hover{ background:#dc2626; }
+
+.feedback{ font-weight:700; margin-top:0.6rem; padding:0.65rem 0.75rem; border-radius:8px; }
+.feedback.sucesso{ color:#065f46; background:#ecfdf5; border:1px solid #a7f3d0; }
+.feedback.erro{ color:#991b1b; background:#fef2f2; border:1px solid #fecaca; }
+
+@media (max-width: 768px){
+  .assentos-grid{ grid-template-columns: repeat(8,1fr); }
+  .filme-card h2{ font-size: 0.9rem; }
+  .linha-ingressos{ grid-template-columns: 1fr; }
+}
