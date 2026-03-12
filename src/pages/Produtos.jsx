@@ -1,14 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { api } from "../services/api";
 import "./Produtos.css";
 
-const PRECO_INTEIRA = 32;
-const PRECO_MEIA = 16;
 const MAX_INGRESSOS = 10;
 
 function Produtos(){
   const navigate = useNavigate();
+  const location = useLocation();
   const [filmesApi, setFilmesApi] = useState([]);
   const [sessoesApi, setSessoesApi] = useState([]);
   const [loadingFilmes, setLoadingFilmes] = useState(true);
@@ -16,16 +15,19 @@ function Produtos(){
   const [generoSelecionado, setGeneroSelecionado] = useState("Todos");
   const [filmeSelecionado, setFilmeSelecionado] = useState(null);
   const [sessaoSelecionada, setSessaoSelecionada] = useState("");
-  const [assentos, setAssentos] = useState(Array.from({ length: 40 }, (_, i) => ({
-    numero: i + 1,
-    ocupado: i % 7 === 0, // alguns já ocupados para exemplo
-    selecionado: false
-  })));
+  const [assentos, setAssentos] = useState([]);
+  const [loadingAssentos, setLoadingAssentos] = useState(false);
+  const [erroAssentos, setErroAssentos] = useState("");
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
-  const [qtdInteira, setQtdInteira] = useState(1);
+  const [qtdInteira, setQtdInteira] = useState(0);
   const [qtdMeia, setQtdMeia] = useState(0);
   const [feedback, setFeedback] = useState({ tipo: "", texto: "" });
+
+  const filmePreferidoId = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return Number(params.get("filme") || 0);
+  }, [location.search]);
 
   useEffect(() => {
     const session = JSON.parse(localStorage.getItem("cineMaxSession") || "null");
@@ -74,8 +76,13 @@ function Produtos(){
         setFilmesApi(filmesNormalizados);
 
         if (filmesNormalizados.length > 0) {
-          setFilmeSelecionado(filmesNormalizados[0]);
-          setSessaoSelecionada(filmesNormalizados[0].sessoes[0] || "");
+          const filmePreferido = filmesNormalizados.find(
+            (filme) => Number(filme.id) === Number(filmePreferidoId)
+          );
+          const filmeInicial = filmePreferido || filmesNormalizados[0];
+
+          setFilmeSelecionado(filmeInicial);
+          setSessaoSelecionada(filmeInicial.sessoes[0] || "");
         } else {
           setFilmeSelecionado(null);
           setSessaoSelecionada("");
@@ -91,7 +98,7 @@ function Produtos(){
     }
 
     loadFilmes();
-  }, []);
+  }, [filmePreferidoId]);
 
   const generos = useMemo(() => ["Todos", ...new Set(filmesApi.map((f) => f.genero))], [filmesApi]);
 
@@ -111,7 +118,7 @@ function Produtos(){
     if (!filmesFiltrados.some((filme) => filme.id === filmeSelecionado.id)) {
       setFilmeSelecionado(filmesFiltrados[0] || null);
     }
-  }, [filmesFiltrados, filmeSelecionado?.id]);
+  }, [filmesFiltrados, filmeSelecionado]);
 
   useEffect(() => {
     if (!filmeSelecionado) {
@@ -120,12 +127,83 @@ function Produtos(){
     }
 
     setSessaoSelecionada(filmeSelecionado.sessoes[0] || "");
-    setAssentos((old) => old.map((a) => ({ ...a, selecionado: false })));
   }, [filmeSelecionado]);
 
+  const carregarAssentosSessao = useCallback(async (idSessao) => {
+    setLoadingAssentos(true);
+    setErroAssentos("");
+
+    try {
+      const idSessaoNumero = Number(idSessao || 0);
+
+      if (!idSessaoNumero) {
+        setAssentos([]);
+        return;
+      }
+
+      const [assentosApi, ingressosApi, sessoes] = await Promise.all([
+        api.get("/assentos"),
+        api.get("/ingressos"),
+        sessoesApi.length > 0 ? Promise.resolve(sessoesApi) : api.get("/sessoes"),
+      ]);
+
+      const sessaoAlvo = sessoes.find(
+        (sessao) => Number(sessao.id_sessao) === idSessaoNumero
+      );
+
+      if (!sessaoAlvo?.id_sala) {
+        setAssentos([]);
+        setErroAssentos("A sessao selecionada nao possui sala vinculada.");
+        return;
+      }
+
+      const assentosOcupados = new Set(
+        ingressosApi
+          .filter((ingresso) => Number(ingresso.id_sessao) === idSessaoNumero)
+          .map((ingresso) => Number(ingresso.id_assento))
+      );
+
+      const assentosSala = assentosApi
+        .filter((assento) => Number(assento.id_sala) === Number(sessaoAlvo.id_sala))
+        .sort((a, b) => Number(a.numero) - Number(b.numero))
+        .map((assento) => ({
+          id_assento: Number(assento.id_assento),
+          numero: Number(assento.numero),
+          ocupado: assentosOcupados.has(Number(assento.id_assento)),
+          selecionado: false,
+        }));
+
+      setAssentos(assentosSala);
+    } catch (error) {
+      setAssentos([]);
+      setErroAssentos(error.message || "Nao foi possivel carregar assentos da sessao.");
+    } finally {
+      setLoadingAssentos(false);
+    }
+  }, [sessoesApi]);
+
+  useEffect(() => {
+    const idSessao = Number(String(sessaoSelecionada || "").split("#")[1] || 0);
+
+    if (!idSessao) {
+      setAssentos([]);
+      setErroAssentos("");
+      return;
+    }
+
+    carregarAssentosSessao(idSessao);
+  }, [sessaoSelecionada, carregarAssentosSessao]);
+
   const assentosSelecionados = assentos.filter((a) => a.selecionado);
+  const assentosOcupadosQtd = assentos.filter((a) => a.ocupado).length;
+  const assentosLivresQtd = assentos.length - assentosOcupadosQtd;
+  const assentosSelecionadosQtd = assentosSelecionados.length;
+  const idSessaoSelecionada = Number(String(sessaoSelecionada || "").split("#")[1] || 0);
+  const sessaoAtual = sessoesApi.find((sessao) => Number(sessao.id_sessao) === idSessaoSelecionada);
+  const precoInteira = Number(sessaoAtual?.preco || 0);
+  const precoMeia = Number((precoInteira / 2).toFixed(2));
   const totalIngressos = qtdInteira + qtdMeia;
-  const valorTotal = qtdInteira * PRECO_INTEIRA + qtdMeia * PRECO_MEIA;
+  const valorTotal = qtdInteira * precoInteira + qtdMeia * precoMeia;
 
   useEffect(() => {
     if (assentosSelecionados.length > totalIngressos) {
@@ -159,8 +237,16 @@ function Produtos(){
     }
   }
 
-  function toggleAssento(numero){
-    if (assentosSelecionados.length >= totalIngressos && !assentos.find((a) => a.numero === numero)?.selecionado) {
+  function toggleAssento(idAssento){
+    if (totalIngressos <= 0) {
+      setFeedback({
+        tipo: "erro",
+        texto: "Escolha primeiro a quantidade e o tipo de ingresso para selecionar assentos.",
+      });
+      return;
+    }
+
+    if (assentosSelecionados.length >= totalIngressos && !assentos.find((a) => a.id_assento === idAssento)?.selecionado) {
       setFeedback({
         tipo: "erro",
         texto: "Você já selecionou todos os assentos para a quantidade de ingressos escolhida."
@@ -168,7 +254,7 @@ function Produtos(){
       return;
     }
 
-    setAssentos((old) => old.map((a) => a.numero === numero && !a.ocupado ? { ...a, selecionado: !a.selecionado } : a));
+    setAssentos((old) => old.map((a) => a.id_assento === idAssento && !a.ocupado ? { ...a, selecionado: !a.selecionado } : a));
     setFeedback({ tipo: "", texto: "" });
   }
 
@@ -217,23 +303,6 @@ function Produtos(){
     }
 
     return Number(sessoesDoFilme[0].id_sessao);
-  }
-
-  async function obterAssentoId(numeroSelecionado, idSessao) {
-    const assentosApi = await api.get("/assentos");
-    const sessoes = sessoesApi.length > 0 ? sessoesApi : await api.get("/sessoes");
-    const sessaoAlvo = sessoes.find(
-      (sessao) => Number(sessao.id_sessao) === Number(idSessao)
-    );
-
-    if (!sessaoAlvo?.id_sala) return null;
-
-    const porNumero = assentosApi.find(
-      (assento) =>
-        Number(assento.id_sala) === Number(sessaoAlvo.id_sala) &&
-        String(assento.numero) === String(numeroSelecionado)
-    );
-    return porNumero?.id_assento || null;
   }
 
   async function reservar(e){
@@ -298,12 +367,34 @@ function Produtos(){
         return;
       }
 
+      const ingressosAtuais = await api.get("/ingressos");
+      const assentosOcupadosAgora = new Set(
+        ingressosAtuais
+          .filter((ingresso) => Number(ingresso.id_sessao) === Number(idSessao))
+          .map((ingresso) => Number(ingresso.id_assento))
+      );
+
+      const assentoConflitante = assentosSelecionados.find((assento) =>
+        assentosOcupadosAgora.has(Number(assento.id_assento))
+      );
+
+      if (assentoConflitante) {
+        setFeedback({
+          tipo: "erro",
+          texto: `O assento ${assentoConflitante.numero} acabou de ser reservado nesta sessao. Escolha outro assento.`,
+        });
+        await carregarAssentosSessao(idSessao);
+        return;
+      }
+
+      const ingressosCriados = [];
+
       for (const assentoSelecionado of assentosSelecionados) {
-        const idAssento = await obterAssentoId(assentoSelecionado.numero, idSessao);
+        const idAssento = Number(assentoSelecionado.id_assento || 0);
         if (!idAssento) {
           setFeedback({
             tipo: "erro",
-            texto: `Assento ${assentoSelecionado.numero} nao existe para a sessao selecionada no banco.`,
+            texto: `Assento ${assentoSelecionado.numero} invalido para a sessao selecionada.`,
           });
           return;
         }
@@ -325,24 +416,18 @@ function Produtos(){
           throw new Error("Nao foi possivel obter o ingresso criado para registrar o pagamento.");
         }
 
-        await api.post("/pagamentos", {
-          id_ingresso: idIngresso,
-          valor: Number((valorTotal / totalIngressos).toFixed(2)),
-          metodo_pagamento: "pix",
-          data_pagamento: new Date().toISOString(),
-        });
+        ingressosCriados.push(idIngresso);
       }
 
-      setFeedback({
-        tipo: "sucesso",
-        texto: `Compra confirmada! ${nomeCompra}, ${totalIngressos} ingresso(s) para '${filmeSelecionado.titulo}' na sessão ${String(sessaoSelecionada || "").split("#")[0]}. Total: R$ ${valorTotal.toFixed(2)}.`
+      navigate("/pagamento", {
+        state: {
+          ingressosIds: ingressosCriados,
+          valorTotal,
+          totalIngressos,
+          filmeTitulo: filmeSelecionado.titulo,
+          sessaoLabel: String(sessaoSelecionada || "").split("#")[0],
+        },
       });
-
-      setAssentos((old)=> old.map((a)=> a.selecionado ? { ...a, ocupado: true, selecionado: false } : a));
-      setNome("");
-      setEmail("");
-      setQtdInteira(1);
-      setQtdMeia(0);
     } catch (error) {
       setFeedback({ tipo: "erro", texto: error.message || "Erro ao registrar compra na API." });
     }
@@ -404,23 +489,76 @@ function Produtos(){
         )}
       </section>
 
-      <section className="assentos-area">
-        <h3>Mapa de Assentos</h3>
-        <div className="assentos-grid">
-          {assentos.map((assento)=> (
-            <button key={assento.numero}
-              disabled={assento.ocupado}
-              className={assento.ocupado ? 'ocupado' : assento.selecionado ? 'selecionado' : ''}
-              onClick={()=>toggleAssento(assento.numero)}>
-              {assento.numero}
-            </button>
-          ))}
+      <section className="config-ingressos-area">
+        <div className="config-ingressos-head">
+          <h3>1. Escolha tipo e quantidade</h3>
+          <div className="config-total-pill">
+            Total parcial: <strong>R$ {valorTotal.toFixed(2)}</strong>
+          </div>
         </div>
+
+        <div className="linha-ingressos">
+          <div className={`tipo-ingresso-card ${qtdInteira > 0 ? "ativo" : ""}`}>
+            <span className="tipo-badge">Inteira</span>
+            <label>Inteira</label>
+            <p>R$ {precoInteira.toFixed(2)}</p>
+            <div className="controle-qtd">
+              <button type="button" className="btn-qtd" onClick={()=>alterarQuantidade("inteira", "menos")}>-</button>
+              <span className="qtd-pill">{qtdInteira}</span>
+              <button type="button" className="btn-qtd" onClick={()=>alterarQuantidade("inteira", "mais")}>+</button>
+            </div>
+          </div>
+
+          <div className={`tipo-ingresso-card ${qtdMeia > 0 ? "ativo" : ""}`}>
+            <span className="tipo-badge meia">Meia</span>
+            <label>Meia Entrada</label>
+            <p>R$ {precoMeia.toFixed(2)}</p>
+            <div className="controle-qtd">
+              <button type="button" className="btn-qtd" onClick={()=>alterarQuantidade("meia", "menos")}>-</button>
+              <span className="qtd-pill">{qtdMeia}</span>
+              <button type="button" className="btn-qtd" onClick={()=>alterarQuantidade("meia", "mais")}>+</button>
+            </div>
+          </div>
+        </div>
+
+        <p className="resumo-ingressos">
+          Limite por compra: {MAX_INGRESSOS} ingressos. Selecionados: {totalIngressos} ingresso(s)
+          {qtdInteira > 0 ? ` | Inteira: ${qtdInteira}` : ""}
+          {qtdMeia > 0 ? ` | Meia: ${qtdMeia}` : ""}
+        </p>
+      </section>
+
+      <section className="assentos-area">
+        <h3>2. Escolha os assentos</h3>
+        {loadingAssentos && <p>Carregando assentos da sessao...</p>}
+        {!loadingAssentos && erroAssentos && <p className="feedback erro">{erroAssentos}</p>}
+        {!loadingAssentos && !erroAssentos && assentos.length === 0 && <p>Nenhum assento encontrado para esta sessao.</p>}
+
+        {!loadingAssentos && !erroAssentos && assentos.length > 0 && (
+          <>
+            <div className="assentos-status">
+              <span className="status-chip livres">Livres: {assentosLivresQtd}</span>
+              <span className="status-chip ocupados">Ocupados: {assentosOcupadosQtd}</span>
+              <span className="status-chip selecionados">Selecionados: {assentosSelecionadosQtd}</span>
+            </div>
+
+            <div className="assentos-grid">
+              {assentos.map((assento)=> (
+                <button key={assento.id_assento}
+                  disabled={assento.ocupado}
+                  className={assento.ocupado ? 'ocupado' : assento.selecionado ? 'selecionado' : ''}
+                  onClick={()=>toggleAssento(assento.id_assento)}>
+                  {assento.numero}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
         <p>Assentos ocupados em vermelho, livres em cinza, selecionados em verde.</p>
       </section>
 
       <section className="reserva-form">
-        <h3>Reserva</h3>
+        <h3>3. Finalizar reserva</h3>
         <form onSubmit={reservar}>
           <label>Nome completo</label>
           <input value={nome} onChange={(e)=>setNome(e.target.value)} placeholder="Ex: Ana Maria" />
@@ -434,41 +572,13 @@ function Produtos(){
           <label>Sessão selecionada</label>
           <input value={String(sessaoSelecionada || "Nenhuma sessao").split("#")[0]} disabled />
 
-          <div className="linha-ingressos">
-            <div className="tipo-ingresso-card">
-              <label>Inteira</label>
-              <p>R$ 32,00</p>
-              <div className="controle-qtd">
-                <button type="button" onClick={()=>alterarQuantidade("inteira", "menos")}>-</button>
-                <span>{qtdInteira}</span>
-                <button type="button" onClick={()=>alterarQuantidade("inteira", "mais")}>+</button>
-              </div>
-            </div>
-
-            <div className="tipo-ingresso-card">
-              <label>Meia Entrada</label>
-              <p>R$ 16,00</p>
-              <div className="controle-qtd">
-                <button type="button" onClick={()=>alterarQuantidade("meia", "menos")}>-</button>
-                <span>{qtdMeia}</span>
-                <button type="button" onClick={()=>alterarQuantidade("meia", "mais")}>+</button>
-              </div>
-            </div>
-          </div>
-
-          <p className="resumo-ingressos">
-            Limite por compra: {MAX_INGRESSOS} ingressos. Selecionados: {totalIngressos} ingresso(s)
-            {qtdInteira > 0 ? ` | Inteira: ${qtdInteira}` : ""}
-            {qtdMeia > 0 ? ` | Meia: ${qtdMeia}` : ""}
-          </p>
-
           <label>Assentos selecionados</label>
           <input value={assentosSelecionados.map((a)=>a.numero).join(', ') || 'Nenhum'} disabled />
 
           <label>Total da compra</label>
           <input value={`R$ ${valorTotal.toFixed(2)} (${totalIngressos} ingresso(s))`} disabled />
 
-          <button type="submit">Confirmar compra</button>
+          <button type="submit">Ir para pagamento</button>
         </form>
         {feedback.texto && <p className={`feedback ${feedback.tipo}`}>{feedback.texto}</p>}
       </section>

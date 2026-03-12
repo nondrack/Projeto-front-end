@@ -7,6 +7,7 @@ function Cadastro() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     nome: "",
+    cpf: "",
     email: "",
     telefone: "",
     senha: "",
@@ -23,11 +24,22 @@ function Cadastro() {
   function validate() {
     const nextErrors = {};
 
+    const cpfNumerico = formData.cpf.replace(/\D/g, "");
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     if (!formData.nome.trim()) {
       nextErrors.nome = "Informe seu nome completo.";
     }
 
+    if (!cpfNumerico) {
+      nextErrors.cpf = "Informe seu CPF.";
+    } else if (!isValidCPF(cpfNumerico)) {
+      nextErrors.cpf = "Informe um CPF valido.";
+    }
+
     if (!formData.email.trim()) {
+      nextErrors.email = "Informe um e-mail valido.";
+    } else if (!emailRegex.test(formData.email.trim())) {
       nextErrors.email = "Informe um e-mail valido.";
     }
 
@@ -43,16 +55,28 @@ function Cadastro() {
       nextErrors.confirmarSenha = "As senhas nao conferem.";
     }
 
-    const users = JSON.parse(localStorage.getItem("cineMaxUsers") || "[]");
-    const emailExistsLocal = users.some(
-      (item) => item.email.toLowerCase() === formData.email.toLowerCase()
-    );
-
-    if (emailExistsLocal) {
-      nextErrors.email = "Este e-mail ja esta cadastrado.";
-    }
-
     return nextErrors;
+  }
+
+  function isValidCPF(cpf) {
+    if (!cpf || cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+
+    const nums = cpf.split("").map(Number);
+
+    const calcDigit = (base, factor) => {
+      const total = base.reduce((acc, value) => {
+        const result = acc + value * factor;
+        factor -= 1;
+        return result;
+      }, 0);
+      const mod = (total * 10) % 11;
+      return mod === 10 ? 0 : mod;
+    };
+
+    const d1 = calcDigit(nums.slice(0, 9), 10);
+    const d2 = calcDigit(nums.slice(0, 10), 11);
+
+    return d1 === nums[9] && d2 === nums[10];
   }
 
   async function handleSubmit(event) {
@@ -80,6 +104,7 @@ function Cadastro() {
 
       await api.post("/users", {
         nome: formData.nome.trim(),
+        cpf: formData.cpf.replace(/\D/g, ""),
         email: formData.email.trim(),
         senha: formData.senha,
         tipo_usuario: "cliente",
@@ -125,6 +150,18 @@ function Cadastro() {
             autoComplete="email"
           />
           {errors.email && <small className="error-text">{errors.email}</small>}
+
+          <label htmlFor="cpf">CPF</label>
+          <input
+            id="cpf"
+            name="cpf"
+            type="text"
+            placeholder="000.000.000-00"
+            value={formData.cpf}
+            onChange={handleChange}
+            autoComplete="off"
+          />
+          {errors.cpf && <small className="error-text">{errors.cpf}</small>}
 
           <label htmlFor="telefone">Telefone</label>
           <input

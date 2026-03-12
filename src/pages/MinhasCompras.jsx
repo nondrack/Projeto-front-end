@@ -32,12 +32,13 @@ function MinhasCompras() {
         const emailLogado = String(sessaoLocal?.email || "").toLowerCase();
         const clienteIdMapeado = Number(clienteMap[emailLogado] || 0);
 
-        const [clientes, ingressos, pagamentos, sessoes, filmes] = await Promise.all([
+        const [clientes, ingressos, pagamentos, sessoes, filmes, assentos] = await Promise.all([
           api.get("/clientes"),
           api.get("/ingressos"),
           api.get("/pagamentos"),
           api.get("/sessoes"),
           api.get("/filmes"),
+          api.get("/assentos"),
         ]);
 
         const clientesPorEmail = sessaoLocal?.email
@@ -63,6 +64,7 @@ function MinhasCompras() {
 
         const sessoesMap = new Map(sessoes.map((sessao) => [Number(sessao.id_sessao), sessao]));
         const filmesMap = new Map(filmes.map((filme) => [Number(filme.id_filme), filme]));
+        const assentosMap = new Map(assentos.map((assento) => [Number(assento.id_assento), assento]));
         const pagamentosMap = new Map(
           pagamentos.map((pagamento) => [Number(pagamento.id_ingresso), pagamento])
         );
@@ -70,6 +72,7 @@ function MinhasCompras() {
         const historico = ingressosDoCliente.map((ingresso) => {
           const sessao = sessoesMap.get(Number(ingresso.id_sessao));
           const filme = sessao ? filmesMap.get(Number(sessao.id_filme)) : null;
+          const assentoInfo = assentosMap.get(Number(ingresso.id_assento));
           const pagamento = pagamentosMap.get(Number(ingresso.id_ingresso));
 
           return {
@@ -78,7 +81,9 @@ function MinhasCompras() {
             sessao: sessao?.horario
               ? new Date(sessao.horario).toLocaleString("pt-BR")
               : "Horario nao informado",
-            assento: ingresso.id_assento,
+            assento: assentoInfo
+              ? `${assentoInfo.fila || ""}${assentoInfo.numero || ""}`.trim() || `ID ${ingresso.id_assento}`
+              : `ID ${ingresso.id_assento}`,
             valor: pagamento?.valor || 0,
             metodo: pagamento?.metodo_pagamento || "Nao informado",
             dataCompra: ingresso.data_compra

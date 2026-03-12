@@ -23,12 +23,38 @@
 
 .detalhes-filme{ padding: 1rem; border-radius: 10px; border: 1px solid #e5e7eb; background: #fff; }
 
+.config-ingressos-area{ padding:1rem; border-radius:10px; border:1px solid #e5e7eb; background:#fff; }
+
+.config-ingressos-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:0.7rem;
+  flex-wrap:wrap;
+  margin-bottom:0.75rem;
+}
+
+.config-total-pill{
+  border:1px solid #fed7aa;
+  background:#fff7ed;
+  color:#9a3412;
+  border-radius:999px;
+  padding:0.35rem 0.7rem;
+  font-size:0.86rem;
+  font-weight:700;
+}
+
 .sessoes{ margin-top: 0.9rem; }
 .sessoes-opcoes{ display:flex; gap:0.5rem; flex-wrap: wrap; margin-top:0.5rem; }
 .sessoes-opcoes button{ border:1px solid #cbd5e1; background:#f8fafc; border-radius: 999px; padding:0.35rem 0.75rem; cursor:pointer; }
 .sessoes-opcoes button.sessao-ativa{ background:#f54927; color:#fff; border-color:#f54927; }
 
 .assentos-area{ padding:1rem; border-radius: 10px; border: 1px solid #e5e7eb; background: #fff; }
+.assentos-status{ display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.75rem; }
+.status-chip{ display:inline-flex; align-items:center; border-radius:999px; padding:0.35rem 0.7rem; font-size:0.82rem; font-weight:700; border:1px solid transparent; }
+.status-chip.livres{ background:#f3f4f6; color:#374151; border-color:#9ca3af; }
+.status-chip.ocupados{ background:#fef2f2; color:#991b1b; border-color:#fecaca; }
+.status-chip.selecionados{ background:#ecfdf5; color:#065f46; border-color:#a7f3d0; }
 .assentos-grid{ display: grid; grid-template-columns: repeat(10,1fr); gap: 0.35rem; }
 .assentos-grid button{ padding: 0.55rem; border: 1px solid #9ca3af; border-radius: 4px; background:#f3f4f6; cursor:pointer; }
 .assentos-grid button.ocupado{ background:#f87171; border-color:#dc2626; color:#fff; cursor:not-allowed; }
@@ -39,20 +65,49 @@
 .reserva-form label{ font-weight:700; }
 .reserva-form input{ padding:0.7rem; border-radius:8px; border:1px solid #cbd5e1; }
 
+
 .linha-ingressos{ display:grid; grid-template-columns: 1fr 1fr; gap:0.8rem; }
 .linha-ingressos div{ display:grid; gap:0.4rem; }
 
 .tipo-ingresso-card{
   border: 1px solid #e2e8f0;
   border-radius: 10px;
-  padding: 0.7rem;
+  padding: 0.8rem;
   background: #f8fafc;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.7);
+  transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+
+.tipo-ingresso-card.ativo{
+  border-color:#f97316;
+  box-shadow:0 0 0 3px rgba(249,115,22,0.14);
+  transform:translateY(-1px);
+}
+
+.tipo-badge{
+  display:inline-flex;
+  width:max-content;
+  border-radius:999px;
+  padding:0.2rem 0.55rem;
+  font-size:0.72rem;
+  font-weight:800;
+  letter-spacing:.02em;
+  background:#e0f2fe;
+  color:#075985;
+  border:1px solid #bae6fd;
+}
+
+.tipo-badge.meia{
+  background:#fce7f3;
+  color:#9d174d;
+  border-color:#fbcfe8;
 }
 
 .tipo-ingresso-card p{
-  margin: 0;
+  margin: 0.15rem 0 0;
   color: #0f172a;
   font-weight: 700;
+  font-size:1.1rem;
 }
 
 .controle-qtd{
@@ -61,26 +116,36 @@
   gap: 0.6rem;
 }
 
-.controle-qtd button{
+.controle-qtd button,
+.btn-qtd{
   width: 32px;
   height: 32px;
-  border: 1px solid #cbd5e1;
-  background: #fff;
-  border-radius: 8px;
+  border: 1px solid #f97316;
+  background: linear-gradient(180deg, #fff7ed 0%, #ffedd5 100%);
+  border-radius: 999px;
   font-size: 1.1rem;
   line-height: 1;
   cursor: pointer;
+  color:#9a3412;
+  font-weight:800;
 }
 
-.controle-qtd button:hover{
-  border-color: #f54927;
-  color: #f54927;
+.controle-qtd button:hover,
+.btn-qtd:hover{
+  border-color: #ea580c;
+  color: #7c2d12;
+  transform: translateY(-1px);
 }
 
-.controle-qtd span{
+.controle-qtd span,
+.qtd-pill{
   min-width: 26px;
   text-align: center;
   font-weight: 700;
+  border:1px solid #cbd5e1;
+  border-radius:999px;
+  padding:0.2rem 0.6rem;
+  background:#fff;
 }
 
 .resumo-ingressos{

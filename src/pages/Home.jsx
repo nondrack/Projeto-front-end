@@ -37,6 +37,7 @@ function Home(){
                 }
 
                 const normalizados = filmes.slice(0, 8).map((filme) => ({
+                    id: Number(filme.id_filme),
                     titulo: filme.titulo,
                     genero: filme.genero || "Genero nao informado",
                     horarios: (sessoesPorFilme.get(Number(filme.id_filme)) || []).slice(0, 3),
@@ -108,7 +109,7 @@ function Home(){
                                         <span key={`${sessao.dia}-${sessao.hora}`}>{sessao.dia} - {sessao.hora}</span>
                                     ))}
                                 </div>
-                                <Link to="/produtos" className="btn-card">Reservar ingresso</Link>
+                                <Link to={`/produtos?filme=${filme.id}`} className="btn-card">Reservar ingresso</Link>
                             </div>
                         </article>
                     ))}

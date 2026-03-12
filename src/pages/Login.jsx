@@ -1,11 +1,13 @@
 import { useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { api } from "../services/api";
 import "./Login.css";
 
 function Login() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { setSession } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     senha: "",
@@ -30,9 +32,12 @@ function Login() {
 
   function validate() {
     const nextErrors = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
     if (!formData.email.trim()) {
       nextErrors.email = "Informe seu e-mail.";
+    } else if (!emailRegex.test(formData.email.trim())) {
+      nextErrors.email = "Informe um e-mail valido.";
     }
 
     if (!formData.senha) {
@@ -54,27 +59,27 @@ function Login() {
     }
 
     try {
-      const users = await api.get("/users");
-      const user = users.find(
-        (item) =>
-          item.email.toLowerCase() === formData.email.toLowerCase() &&
-          item.senha === formData.senha
-      );
+      const authData = await api.post("/auth/login", {
+        email: formData.email,
+        senha: formData.senha,
+      });
 
-      if (!user) {
-        setMessage("E-mail ou senha invalido.");
+      const user = authData?.user;
+      const token = authData?.token;
+
+      if (!user || !token) {
+        setMessage("Nao foi possivel concluir o login.");
         return;
       }
 
-      localStorage.setItem(
-        "cineMaxSession",
-        JSON.stringify({
-          nome: user.nome,
-          email: user.email,
-          id_usuario: user.id_usuario,
-          loggedInAt: new Date().toISOString(),
-        })
-      );
+      setSession({
+        nome: user.nome,
+        email: user.email,
+        id_usuario: user.id_usuario,
+        tipo_usuario: user.tipo_usuario,
+        token,
+        loggedInAt: new Date().toISOString(),
+      });
 
       setMessage("Login realizado com sucesso. Redirecionando...");
       setTimeout(() => navigate(redirectPath), 900);

@@ -51,8 +51,23 @@
 
 .menu_header{
     display: flex;
-    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
     flex-wrap: wrap;
+}
+
+.menu_links_principais,
+.menu_area_conta{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.menu_area_conta{
+    padding-left: 12px;
+    border-left: 1px solid rgba(251, 191, 36, 0.35);
 }
 
 .menu_header a{
@@ -119,6 +134,78 @@
     color: #052e16;
 }
 
+.menu_header .usuario-logado{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 190px;
+    padding: 9px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(251, 191, 36, 0.35);
+    background: rgba(15, 23, 42, 0.58);
+    color: #fef3c7;
+    font-weight: 700;
+    font-size: 0.84rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.usuario-trigger{
+    cursor: pointer;
+}
+
+.seta-menu{
+    font-size: 0.7rem;
+    opacity: 0.9;
+}
+
+.conta-dropdown{
+    position: relative;
+}
+
+.dropdown-menu{
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    min-width: 170px;
+    display: grid;
+    gap: 6px;
+    border: 1px solid rgba(251, 191, 36, 0.35);
+    border-radius: 12px;
+    padding: 8px;
+    background: #0f172a;
+    box-shadow: 0 10px 24px rgba(2, 6, 23, 0.45);
+    z-index: 20;
+}
+
+.dropdown-menu a,
+.dropdown-menu .dropdown-sair{
+    width: 100%;
+    text-align: left;
+    color: #f9fafb;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    font-size: 0.78rem;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(251, 191, 36, 0.25);
+    background: rgba(15, 23, 42, 0.72);
+    cursor: pointer;
+}
+
+.dropdown-menu a:hover,
+.dropdown-menu .dropdown-sair:hover{
+    background-color: rgba(245, 158, 11, 0.2);
+    border-color: #f59e0b;
+}
+
+.dropdown-menu .dropdown-sair{
+    font-family: inherit;
+}
+
 @media (max-width: 760px){
     .header{
         flex-direction: column;
@@ -128,11 +215,41 @@
 
     .menu_header{
         width: 100%;
+        justify-content: flex-start;
+    }
+
+    .menu_links_principais,
+    .menu_area_conta{
+        width: 100%;
+    }
+
+    .menu_area_conta{
+        padding-left: 0;
+        border-left: none;
+        padding-top: 6px;
+        border-top: 1px solid rgba(251, 191, 36, 0.35);
     }
 
     .menu_header a{
         text-align: center;
         flex: 1;
         min-width: 110px;
+    }
+
+    .menu_header .btn-sair,
+    .menu_header .usuario-logado{
+        flex: 1;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .conta-dropdown{
+        width: 100%;
+    }
+
+    .dropdown-menu{
+        position: static;
+        margin-top: 8px;
+        width: 100%;
     }
 }
