@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { api } from "../services/api";
 import "./Cadastro.css";
 
 function Cadastro() {
@@ -42,20 +43,19 @@ function Cadastro() {
       nextErrors.confirmarSenha = "As senhas nao conferem.";
     }
 
-    const raw = localStorage.getItem("cineMaxUsers");
-    const users = raw ? JSON.parse(raw) : [];
-    const emailExists = users.some(
+    const users = JSON.parse(localStorage.getItem("cineMaxUsers") || "[]");
+    const emailExistsLocal = users.some(
       (item) => item.email.toLowerCase() === formData.email.toLowerCase()
     );
 
-    if (emailExists) {
+    if (emailExistsLocal) {
       nextErrors.email = "Este e-mail ja esta cadastrado.";
     }
 
     return nextErrors;
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
     const nextErrors = validate();
@@ -66,22 +66,30 @@ function Cadastro() {
       return;
     }
 
-    const raw = localStorage.getItem("cineMaxUsers");
-    const users = raw ? JSON.parse(raw) : [];
+    try {
+      const usersApi = await api.get("/users");
+      const emailExistsApi = usersApi.some(
+        (item) => item.email.toLowerCase() === formData.email.trim().toLowerCase()
+      );
 
-    const newUser = {
-      nome: formData.nome.trim(),
-      email: formData.email.trim(),
-      telefone: formData.telefone.trim(),
-      senha: formData.senha,
-      createdAt: new Date().toISOString(),
-    };
+      if (emailExistsApi) {
+        setErrors({ email: "Este e-mail ja esta cadastrado." });
+        setMessage("");
+        return;
+      }
 
-    users.push(newUser);
-    localStorage.setItem("cineMaxUsers", JSON.stringify(users));
+      await api.post("/users", {
+        nome: formData.nome.trim(),
+        email: formData.email.trim(),
+        senha: formData.senha,
+        tipo_usuario: "cliente",
+      });
 
-    setMessage("Cadastro concluido com sucesso. Redirecionando para o login...");
-    setTimeout(() => navigate("/login"), 1000);
+      setMessage("Cadastro concluido com sucesso. Redirecionando para o login...");
+      setTimeout(() => navigate("/login"), 1000);
+    } catch (error) {
+      setMessage(error.message || "Nao foi possivel concluir o cadastro.");
+    }
   }
 
   return (

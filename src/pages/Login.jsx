@@ -1,15 +1,27 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { api } from "../services/api";
 import "./Login.css";
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [formData, setFormData] = useState({
     email: "",
     senha: "",
   });
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
+
+  const redirectPath = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get("redirect") || "/";
+  }, [location.search]);
+
+  const motivoCompra = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get("motivo") === "compra";
+  }, [location.search]);
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -30,7 +42,7 @@ function Login() {
     return nextErrors;
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
     const nextErrors = validate();
@@ -41,31 +53,34 @@ function Login() {
       return;
     }
 
-    const raw = localStorage.getItem("cineMaxUsers");
-    const users = raw ? JSON.parse(raw) : [];
+    try {
+      const users = await api.get("/users");
+      const user = users.find(
+        (item) =>
+          item.email.toLowerCase() === formData.email.toLowerCase() &&
+          item.senha === formData.senha
+      );
 
-    const user = users.find(
-      (item) =>
-        item.email.toLowerCase() === formData.email.toLowerCase() &&
-        item.senha === formData.senha
-    );
+      if (!user) {
+        setMessage("E-mail ou senha invalido.");
+        return;
+      }
 
-    if (!user) {
-      setMessage("E-mail ou senha invalido.");
-      return;
+      localStorage.setItem(
+        "cineMaxSession",
+        JSON.stringify({
+          nome: user.nome,
+          email: user.email,
+          id_usuario: user.id_usuario,
+          loggedInAt: new Date().toISOString(),
+        })
+      );
+
+      setMessage("Login realizado com sucesso. Redirecionando...");
+      setTimeout(() => navigate(redirectPath), 900);
+    } catch (error) {
+      setMessage(error.message || "Nao foi possivel conectar com o servidor.");
     }
-
-    localStorage.setItem(
-      "cineMaxSession",
-      JSON.stringify({
-        nome: user.nome,
-        email: user.email,
-        loggedInAt: new Date().toISOString(),
-      })
-    );
-
-    setMessage("Login realizado com sucesso. Redirecionando...");
-    setTimeout(() => navigate("/"), 900);
   }
 
   return (
@@ -76,6 +91,9 @@ function Login() {
         <p className="auth-subtitle">
           Entre para acompanhar pedidos, favoritos e novidades da CINE MAX.
         </p>
+        {motivoCompra && (
+          <p className="status-text">Faca login para concluir sua compra.</p>
+        )}
 
         <form className="auth-form" onSubmit={handleSubmit} noValidate>
           <label htmlFor="email">E-mail</label>

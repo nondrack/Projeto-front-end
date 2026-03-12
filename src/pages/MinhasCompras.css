@@ -1,0 +1,51 @@
+.compras-page {
+  padding: 24px;
+}
+
+.compras-card {
+  max-width: 960px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+}
+
+.compras-subtitle {
+  margin-top: 4px;
+  color: #4b5563;
+}
+
+.compras-resumo {
+  margin: 16px 0;
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.compras-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.compra-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px;
+  background: #f9fafb;
+}
+
+.compra-item h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.compra-item p {
+  margin: 4px 0;
+}
+
+.compras-erro {
+  color: #b91c1c;
+  font-weight: 600;
+}

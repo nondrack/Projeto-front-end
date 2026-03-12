@@ -1,50 +1,60 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { api } from "../services/api";
 import "./Home.css";
 
-const filmesDestaque = [
-    {
-        titulo: "Cosmic Show",
-        genero: "Acao e Aventura",
-        horarios: [
-            { dia: "Seg", hora: "14:20" },
-            { dia: "Qua", hora: "17:10" },
-            { dia: "Sex", hora: "20:05" }
-        ],
-        imagem: "https://i.imgur.com/8w1NikM.jpg"
-    },
-    {
-        titulo: "Noite no Vazio",
-        genero: "Terror Sci-Fi",
-        horarios: [
-            { dia: "Ter", hora: "15:40" },
-            { dia: "Qui", hora: "19:00" },
-            { dia: "Sab", hora: "22:15" }
-        ],
-        imagem: "https://i.imgur.com/cH3kBRq.jpg"
-    },
-    {
-        titulo: "Coracao de Jazz",
-        genero: "Drama Musical",
-        horarios: [
-            { dia: "Seg", hora: "13:30" },
-            { dia: "Qui", hora: "16:50" },
-            { dia: "Dom", hora: "20:30" }
-        ],
-        imagem: "https://i.imgur.com/qIYkVKY.jpg"
-    },
-    {
-        titulo: "A Jornada",
-        genero: "Fantasia",
-        horarios: [
-            { dia: "Ter", hora: "14:00" },
-            { dia: "Sex", hora: "18:20" },
-            { dia: "Sab", hora: "21:00" }
-        ],
-        imagem: "https://i.imgur.com/ufrzeZ1.jpg"
-    }
-];
-
 function Home(){
+    const [filmesDestaque, setFilmesDestaque] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [erro, setErro] = useState("");
+
+    useEffect(() => {
+        async function loadDestaques() {
+            setLoading(true);
+            setErro("");
+
+            try {
+                const filmes = await api.get("/filmes");
+                let sessoes = [];
+                try {
+                    sessoes = await api.get("/sessoes");
+                } catch {
+                    sessoes = [];
+                }
+
+                const sessoesPorFilme = new Map();
+                for (const sessao of sessoes) {
+                    const idFilme = Number(sessao.id_filme);
+                    const lista = sessoesPorFilme.get(idFilme) || [];
+                    const dia = sessao.horario
+                        ? new Date(sessao.horario).toLocaleDateString("pt-BR", { weekday: "short" })
+                        : "Dia";
+                    const hora = sessao.horario
+                        ? new Date(sessao.horario).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+                        : "--:--";
+                    lista.push({ dia, hora });
+                    sessoesPorFilme.set(idFilme, lista);
+                }
+
+                const normalizados = filmes.slice(0, 8).map((filme) => ({
+                    titulo: filme.titulo,
+                    genero: filme.genero || "Genero nao informado",
+                    horarios: (sessoesPorFilme.get(Number(filme.id_filme)) || []).slice(0, 3),
+                    imagem: filme.poster_url || "https://i.imgur.com/8w1NikM.jpg",
+                }));
+
+                setFilmesDestaque(normalizados);
+            } catch (error) {
+                setErro(error.message || "Nao foi possivel carregar os filmes do banco.");
+                setFilmesDestaque([]);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        loadDestaques();
+    }, []);
+
     return(
         <main className="home-cinemax">
             <section className="hero-home">
@@ -82,6 +92,11 @@ function Home(){
                 </div>
 
                 <div className="grid-destaques">
+                    {loading && <p>Carregando filmes...</p>}
+                    {!loading && erro && <p>{erro}</p>}
+                    {!loading && !erro && filmesDestaque.length === 0 && (
+                        <p>Nenhum filme encontrado no banco.</p>
+                    )}
                     {filmesDestaque.map((filme) => (
                         <article className="card-destaque" key={filme.titulo}>
                             <img src={filme.imagem} alt={filme.titulo} />
