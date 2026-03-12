@@ -47,8 +47,10 @@ function Cadastro() {
       nextErrors.telefone = "Informe um telefone com DDD.";
     }
 
-    if (formData.senha.length < 6) {
-      nextErrors.senha = "A senha deve ter ao menos 6 caracteres.";
+    const senhaForteRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+    if (!senhaForteRegex.test(formData.senha)) {
+      nextErrors.senha =
+        "A senha deve ter no minimo 8 caracteres, incluindo maiuscula, minuscula, numero e simbolo.";
     }
 
     if (formData.confirmarSenha !== formData.senha) {
@@ -91,17 +93,6 @@ function Cadastro() {
     }
 
     try {
-      const usersApi = await api.get("/users");
-      const emailExistsApi = usersApi.some(
-        (item) => item.email.toLowerCase() === formData.email.trim().toLowerCase()
-      );
-
-      if (emailExistsApi) {
-        setErrors({ email: "Este e-mail ja esta cadastrado." });
-        setMessage("");
-        return;
-      }
-
       await api.post("/users", {
         nome: formData.nome.trim(),
         cpf: formData.cpf.replace(/\D/g, ""),
@@ -182,7 +173,7 @@ function Cadastro() {
             id="senha"
             name="senha"
             type="password"
-            placeholder="Minimo 6 caracteres"
+            placeholder="8+ caracteres, com maiuscula, numero e simbolo"
             value={formData.senha}
             onChange={handleChange}
             autoComplete="new-password"
