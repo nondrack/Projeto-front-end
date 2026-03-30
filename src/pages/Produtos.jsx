@@ -41,10 +41,10 @@ function Produtos(){
       setErroFilmes("");
 
       try {
-        const dataFilmes = await api.get("/filmes");
+        const dataFilmes = await api.get("/catalogo/filmes");
         let dataSessoes = [];
         try {
-          dataSessoes = await api.get("/sessoes");
+          dataSessoes = await api.get("/catalogo/sessoes");
         } catch {
           dataSessoes = [];
         }
@@ -142,9 +142,9 @@ function Produtos(){
       }
 
       const [assentosApi, ingressosApi, sessoes] = await Promise.all([
-        api.get("/assentos"),
+        api.get("/catalogo/assentos"),
         api.get("/ingressos"),
-        sessoesApi.length > 0 ? Promise.resolve(sessoesApi) : api.get("/sessoes"),
+        sessoesApi.length > 0 ? Promise.resolve(sessoesApi) : api.get("/catalogo/sessoes"),
       ]);
 
       const sessaoAlvo = sessoes.find(
@@ -260,26 +260,15 @@ function Produtos(){
 
   async function garantirCliente() {
     const session = JSON.parse(localStorage.getItem("cineMaxSession") || "null");
-    const emailCompra = String(session?.email || email).trim();
     const nomeCompra = String(session?.nome || nome).trim();
 
-    const clientes = await api.get("/clientes");
-    const existente = clientes.find(
-      (cliente) => cliente.email?.toLowerCase() === emailCompra.toLowerCase()
-    );
-
-    if (existente) return existente.id_cliente;
-
-    const cpfGerado = `${Date.now()}`.slice(-11);
-    const novoCliente = await api.post("/clientes", {
+    const cliente = await api.post("/clientes/me", {
       nome: nomeCompra,
-      cpf: cpfGerado,
-      email: emailCompra,
       telefone: "",
       data_nascimento: null,
     });
 
-    return novoCliente.id_cliente;
+    return cliente.id_cliente;
   }
 
   async function obterSessaoId() {
@@ -350,15 +339,6 @@ function Produtos(){
     try {
       const idCliente = await garantirCliente();
       localStorage.setItem("cineMaxLastClienteId", String(idCliente));
-
-      const session = JSON.parse(localStorage.getItem("cineMaxSession") || "null");
-      const emailCompra = String(session?.email || email).trim().toLowerCase();
-      if (emailCompra) {
-        const rawMap = localStorage.getItem("cineMaxClienteByEmail") || "{}";
-        const clienteMap = JSON.parse(rawMap);
-        clienteMap[emailCompra] = idCliente;
-        localStorage.setItem("cineMaxClienteByEmail", JSON.stringify(clienteMap));
-      }
 
       const idSessao = await obterSessaoId();
 
@@ -437,29 +417,7 @@ function Produtos(){
     <main className="cinema-page">
       <section className="intro-cinema">
         <h1>Bem-vindo ao CINE MAX</h1>
-        <p>Escolha o filme, sessão e assento no nosso sistema de reserva com design moderno e responsivo.</p>
-      </section>
-
-      <section className="filtro">
-        <label>Gênero:</label>
-        <select value={generoSelecionado} onChange={(e)=>setGeneroSelecionado(e.target.value)}>
-          {generos.map((g) => <option key={g} value={g}>{g}</option>)}
-        </select>
-      </section>
-
-      <section className="lista-filmes">
-        {loadingFilmes && <p>Carregando filmes...</p>}
-        {!loadingFilmes && erroFilmes && <p className="feedback erro">{erroFilmes}</p>}
-        {!loadingFilmes && !erroFilmes && filmesFiltrados.length === 0 && (
-          <p>Nenhum filme cadastrado no banco.</p>
-        )}
-        {filmesFiltrados.map((filme) => (
-          <article key={filme.id} className={`filme-card ${filmeSelecionado?.id === filme.id ? 'ativo' : ''}`} onClick={()=>setFilmeSelecionado(filme)}>
-            <img src={filme.poster} alt={filme.titulo} />
-            <h2>{filme.titulo}</h2>
-            <span>{filme.genero} • {filme.duracao}</span>
-          </article>
-        ))}
+        <p>Escolha o filme, sessão e assento no nosso sistema de reserva.</p>
       </section>
 
       <section className="detalhes-filme">

@@ -14,10 +14,10 @@ function Home(){
             setErro("");
 
             try {
-                const filmes = await api.get("/filmes");
+                const filmes = await api.get("/catalogo/filmes");
                 let sessoes = [];
                 try {
-                    sessoes = await api.get("/sessoes");
+                    sessoes = await api.get("/catalogo/sessoes");
                 } catch {
                     sessoes = [];
                 }

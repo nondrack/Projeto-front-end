@@ -13,17 +13,14 @@ function AdminHome() {
         <div className="admin-simples-grid">
           <article className="admin-simples-item">
             <h4>Filmes</h4>
-            <p>CRUD completo com paginacao e formulario dedicado.</p>
             <Link to="/admin/filmes">Abrir filmes</Link>
           </article>
           <article className="admin-simples-item">
             <h4>Salas</h4>
-            <p>CRUD completo com paginacao e formulario dedicado.</p>
             <Link to="/admin/salas">Abrir salas</Link>
           </article>
           <article className="admin-simples-item">
             <h4>Sessoes</h4>
-            <p>CRUD completo com paginacao e formulario dedicado.</p>
             <Link to="/admin/sessoes">Abrir sessoes</Link>
           </article>
         </div>
