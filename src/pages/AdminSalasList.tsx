@@ -52,7 +52,7 @@ function AdminSalasList() {
   async function remover(id: number) {
     if (!window.confirm("Tem certeza que deseja remover esta sala?")) return;
     try {
-      await api.delete<unknown>(`/salas/${id}`);
+      await api.delete<void>(`/salas/${id}`);
       setFeedback("Sala removida com sucesso.");
       await load(meta.page);
     } catch (error) {

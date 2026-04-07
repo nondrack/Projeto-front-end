@@ -2,6 +2,10 @@ const API_BASE_URL = "http://localhost:3000";
 
 type RequestOptions = RequestInit & { headers?: HeadersInit };
 
+interface ApiErrorPayload {
+  message?: string;
+}
+
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const rawSession = localStorage.getItem("cineMaxSession") || "null";
   const session = JSON.parse(rawSession);
@@ -22,11 +26,20 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   }
 
   const text = await response.text();
-  let data: unknown = null;
+  let data: T | null = null;
+  let payloadMessage: string | undefined;
 
   if (text) {
     try {
-      data = JSON.parse(text);
+      const parsed = JSON.parse(text) as T;
+      data = parsed;
+
+      if (typeof parsed === "object" && parsed !== null && "message" in parsed) {
+        const message = (parsed as ApiErrorPayload).message;
+        if (typeof message === "string") {
+          payloadMessage = message;
+        }
+      }
     } catch {
       data = null;
     }
@@ -34,7 +47,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   if (!response.ok) {
     const status = Number(response.status || 0);
-    const dataMessage = (data as { message?: string } | null)?.message;
+    const dataMessage = payloadMessage;
     let message = dataMessage || "Erro ao comunicar com o servidor.";
 
     if (status === 401) {
@@ -57,12 +70,12 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
 export const api = {
   get: <T>(path: string) => request<T>(path),
-  post: <T>(path: string, body: unknown) =>
+  post: <T>(path: string, body: object) =>
     request<T>(path, {
       method: "POST",
       body: JSON.stringify(body),
     }),
-  put: <T>(path: string, body: unknown) =>
+  put: <T>(path: string, body: object) =>
     request<T>(path, {
       method: "PUT",
       body: JSON.stringify(body),

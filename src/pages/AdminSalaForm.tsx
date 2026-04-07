@@ -68,7 +68,7 @@ function AdminSalaForm({ mode }: AdminSalaFormProps) {
         if (formData.gerarAssentos) {
           for (let numero = 1; numero <= capacidade; numero += 1) {
             const fila = String.fromCharCode(65 + Math.floor((numero - 1) / 10));
-            await api.post<unknown>("/assentos", { id_sala: sala.id_sala, numero: String(numero), fila });
+            await api.post<void>("/assentos", { id_sala: sala.id_sala, numero: String(numero), fila });
           }
         }
       }

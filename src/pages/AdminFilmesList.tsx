@@ -52,7 +52,7 @@ function AdminFilmesList() {
   async function remover(id: number) {
     if (!window.confirm("Tem certeza que deseja remover este filme?")) return;
     try {
-      await api.delete<unknown>(`/filmes/${id}`);
+      await api.delete<void>(`/filmes/${id}`);
       setFeedback("Filme removido com sucesso.");
       await load(meta.page);
     } catch (error) {

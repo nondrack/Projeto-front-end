@@ -67,7 +67,7 @@ function AdminSessoesList() {
   async function remover(id: number) {
     if (!window.confirm("Tem certeza que deseja remover esta sessao?")) return;
     try {
-      await api.delete<unknown>(`/sessoes/${id}`);
+      await api.delete<void>(`/sessoes/${id}`);
       setFeedback("Sessao removida com sucesso.");
       await load(meta.page);
     } catch (error) {
