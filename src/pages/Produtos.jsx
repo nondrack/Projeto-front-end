@@ -415,35 +415,98 @@ function Produtos(){
 
   return(
     <main className="cinema-page">
-      <section className="intro-cinema">
-        <h1>Bem-vindo ao CINE MAX</h1>
-        <p>Escolha o filme, sessão e assento no nosso sistema de reserva.</p>
+      <section className="filtro-catalogo">
+        <div className="intro-cinema">
+          <h1>Cartaz CINE MAX</h1>
+          <p>Escolha o filme, sessão e reserve seu assento.</p>
+        </div>
+        <div className="filtro">
+          <label htmlFor="filtro-genero">Gênero:</label>
+          <select
+            id="filtro-genero"
+            value={generoSelecionado}
+            onChange={(e) => setGeneroSelecionado(e.target.value)}
+          >
+            {generos.map((g) => <option key={g} value={g}>{g}</option>)}
+          </select>
+        </div>
       </section>
+
+      {loadingFilmes && <p className="estado-carregando">Carregando filmes...</p>}
+      {!loadingFilmes && erroFilmes && <p className="feedback erro">{erroFilmes}</p>}
+
+      {!loadingFilmes && !erroFilmes && (
+        <section className="lista-filmes">
+          {filmesFiltrados.map((filme) => {
+            const ativo = filmeSelecionado?.id === filme.id;
+            return (
+              <div
+                key={filme.id}
+                className={`filme-card ${ativo ? "ativo" : ""}`}
+                onClick={() => setFilmeSelecionado(filme)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e.key === "Enter" && setFilmeSelecionado(filme)}
+                aria-pressed={ativo}
+              >
+                <div className="filme-poster-wrap">
+                  <img src={filme.poster} alt={filme.titulo} />
+                  <span className="filme-class-badge">{filme.classificacao}</span>
+                  {ativo && <span className="filme-ativo-tag">✓ Selecionado</span>}
+                </div>
+                <div className="filme-info">
+                  <h2>{filme.titulo}</h2>
+                  <span className="filme-genero">{filme.genero}</span>
+                  {filme.duracao !== "--" && (
+                    <span className="filme-duracao">⏱ {filme.duracao}</span>
+                  )}
+                  <span className="filme-sessoes-count">
+                    {filme.sessoes.length > 0
+                      ? `${filme.sessoes.length} sessão(ões)`
+                      : "Sem sessões"}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </section>
+      )}
 
       <section className="detalhes-filme">
         {filmeSelecionado ? (
-          <>
-            <h2>{filmeSelecionado.titulo}</h2>
-            <p>{filmeSelecionado.sinopse}</p>
-            <p><strong>Classificação:</strong> {filmeSelecionado.classificacao}</p>
-            <div className="sessoes">
-              <strong>Sessões:</strong>
-              <div className="sessoes-opcoes">
-                {filmeSelecionado.sessoes.map((sessao) => (
-                  <button
-                    key={sessao}
-                    type="button"
-                    className={sessaoSelecionada === sessao ? "sessao-ativa" : ""}
-                    onClick={() => setSessaoSelecionada(sessao)}
-                  >
-                    {String(sessao).split("#")[0]}
-                  </button>
-                ))}
+          <div className="detalhes-grid">
+            <div className="detalhes-poster-wrap">
+              <img src={filmeSelecionado.poster} alt={filmeSelecionado.titulo} className="detalhes-poster" />
+            </div>
+            <div className="detalhes-info">
+              <h2>{filmeSelecionado.titulo}</h2>
+              <div className="detalhes-badges">
+                <span className="dbadge dbadge-genero">{filmeSelecionado.genero}</span>
+                <span className="dbadge dbadge-class">{filmeSelecionado.classificacao}</span>
+                {filmeSelecionado.duracao !== "--" && (
+                  <span className="dbadge dbadge-dur">⏱ {filmeSelecionado.duracao}</span>
+                )}
+              </div>
+              <p className="detalhes-sinopse">{filmeSelecionado.sinopse}</p>
+              <div className="sessoes">
+                <p className="sessoes-label">Escolha a sessão:</p>
+                <div className="sessoes-opcoes">
+                  {filmeSelecionado.sessoes.length > 0 ? filmeSelecionado.sessoes.map((sessao) => (
+                    <button
+                      key={sessao}
+                      type="button"
+                      className={sessaoSelecionada === sessao ? "sessao-ativa" : ""}
+                      onClick={() => setSessaoSelecionada(sessao)}
+                    >
+                      {String(sessao).split("#")[0]}
+                    </button>
+                  )) : <span className="sem-sessoes">Nenhuma sessão disponível</span>}
+                </div>
               </div>
             </div>
-          </>
+          </div>
         ) : (
-          <p>Nenhum filme selecionado.</p>
+          <p className="estado-carregando">Nenhum filme selecionado.</p>
         )}
       </section>
 
@@ -488,6 +551,7 @@ function Produtos(){
 
       <section className="assentos-area">
         <h3>2. Escolha os assentos</h3>
+        <div className="tela-cinema" aria-hidden="true">TELA</div>
         {loadingAssentos && <p>Carregando assentos da sessao...</p>}
         {!loadingAssentos && erroAssentos && <p className="feedback erro">{erroAssentos}</p>}
         {!loadingAssentos && !erroAssentos && assentos.length === 0 && <p>Nenhum assento encontrado para esta sessao.</p>}
@@ -536,7 +600,7 @@ function Produtos(){
           <label>Total da compra</label>
           <input value={`R$ ${valorTotal.toFixed(2)} (${totalIngressos} ingresso(s))`} disabled />
 
-          <button type="submit">Ir para pagamento</button>
+          <button type="submit" className="btn-finalizar">Ir para pagamento</button>
         </form>
         {feedback.texto && <p className={`feedback ${feedback.tipo}`}>{feedback.texto}</p>}
       </section>

@@ -9,10 +9,12 @@
     padding: 14px 24px;
     color: #fff;
     background:
-        radial-gradient(circle at 10% 20%, rgba(245, 158, 11, 0.25), transparent 40%),
-        linear-gradient(120deg, #111827 0%, #1f2937 60%, #0f172a 100%);
-    border-bottom: 2px solid #f59e0b;
-    box-shadow: 0 10px 30px rgba(2, 6, 23, 0.35);
+        radial-gradient(circle at 10% 20%, rgba(245, 158, 11, 0.22), transparent 40%),
+        linear-gradient(120deg, rgba(17, 24, 39, 0.92) 0%, rgba(31, 41, 55, 0.92) 60%, rgba(15, 23, 42, 0.92) 100%);
+    border-bottom: 1px solid rgba(245, 158, 11, 0.3);
+    box-shadow: 0 4px 24px rgba(2, 6, 23, 0.5);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
 }
 
 .header::before,
@@ -33,10 +35,12 @@
 .logo h1{
     margin: 0;
     font-size: clamp(1.2rem, 2vw, 1.65rem);
-    letter-spacing: 0.14em;
+    letter-spacing: 0.16em;
     font-weight: 800;
-    color: #fef3c7;
-    text-shadow: 0 0 12px rgba(251, 191, 36, 0.35);
+    background: linear-gradient(120deg, #fff 20%, #fde68a 70%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .logo_subtitle{

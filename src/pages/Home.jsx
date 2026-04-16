@@ -39,7 +39,10 @@ function Home(){
                 const normalizados = filmes.slice(0, 8).map((filme) => ({
                     id: Number(filme.id_filme),
                     titulo: filme.titulo,
-                    genero: filme.genero || "Genero nao informado",
+                    genero: filme.genero || "Sem gênero",
+                    duracao: filme.duracao ? `${filme.duracao} min` : null,
+                    classificacao: filme.classificacao_etaria || "Livre",
+                    sinopse: filme.sinopse || "",
                     horarios: (sessoesPorFilme.get(Number(filme.id_filme)) || []).slice(0, 3),
                     imagem: filme.poster_url || "https://i.imgur.com/8w1NikM.jpg",
                 }));
@@ -100,16 +103,34 @@ function Home(){
                     )}
                     {filmesDestaque.map((filme) => (
                         <article className="card-destaque" key={filme.titulo}>
-                            <img src={filme.imagem} alt={filme.titulo} />
+                            <div className="card-poster-wrap">
+                                <img src={filme.imagem} alt={filme.titulo} />
+                                <span className="card-genero-badge">{filme.genero}</span>
+                                <span className="card-class-badge">{filme.classificacao}</span>
+                                <div className="card-hover-overlay">
+                                    <Link to={`/produtos?filme=${filme.id}`} className="btn-reservar-overlay">
+                                        🎟 Reservar ingresso
+                                    </Link>
+                                </div>
+                            </div>
                             <div className="conteudo-card">
                                 <h3>{filme.titulo}</h3>
-                                <p>{filme.genero}</p>
-                                <div className="horarios-card">
-                                    {filme.horarios.map((sessao) => (
-                                        <span key={`${sessao.dia}-${sessao.hora}`}>{sessao.dia} - {sessao.hora}</span>
-                                    ))}
+                                <div className="card-meta">
+                                    {filme.duracao && <span className="meta-item">⏱ {filme.duracao}</span>}
+                                    {filme.horarios.length > 0 && (
+                                        <span className="meta-item">{filme.horarios.length} sessão(ões)</span>
+                                    )}
                                 </div>
-                                <Link to={`/produtos?filme=${filme.id}`} className="btn-card">Reservar ingresso</Link>
+                                {filme.sinopse && (
+                                    <p className="card-sinopse">{filme.sinopse}</p>
+                                )}
+                                {filme.horarios.length > 0 && (
+                                    <div className="horarios-card">
+                                        {filme.horarios.map((sessao) => (
+                                            <span key={`${sessao.dia}-${sessao.hora}`}>{sessao.dia} {sessao.hora}</span>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </article>
                     ))}
